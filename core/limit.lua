@@ -18,13 +18,14 @@ end
 
 M.get_cache_key = function(api)
     local cache_key = ""
-    return cache_key
+    return cache_key .. api
 end
 
 M.incr = function(api)
     local config = self.get_config(api)
     local cache_key = self.get_cache_key(api)
     local count, err = red:incr()
+    ngx.say(count)
     -- TODO
 end
 
