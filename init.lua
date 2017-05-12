@@ -1,4 +1,6 @@
 
 local limit = require 'core.limit'
 
-limit.incr('hello')
+local l = limit:new()
+
+l:incr('hello')
