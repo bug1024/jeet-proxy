@@ -1,6 +1,5 @@
-
-local M = {}
-M.version = "0.0.1"
-
-return M
-
+return {
+    redis_host = "127.0.0.1",
+    redis_port = 6379,
+    redis_timeout = 1000
+}

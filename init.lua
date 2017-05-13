@@ -3,4 +3,6 @@ local limit = require 'core.limit'
 
 local l = limit:new()
 
-l:incr('hello')
+local api = "/user/1"
+l:incr(api)
+l:get(api)
