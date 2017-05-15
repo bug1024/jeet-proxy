@@ -23,8 +23,17 @@ function M:incr(api)
         return
     end
     local cache_key = self:get_cache_key(api)
+    local exists, err = red:exists(cache_key)
+
+    red:init_pipeline((not exists or exists == 0) and 2 or 1)
     local count, err = red:incr(cache_key)
-    ngx.say(count)
+
+    if not exists or exists == 0 then
+        red:expire(cache_key, 10)
+    end
+    local _, err = red:commit_pipeline()
+
+    return true
 end
 
 function M:get(api)
@@ -38,7 +47,7 @@ function M:get(api)
         return
     end
     local cache_key = self:get_cache_key(api)
-    local count, err = red:gett(cache_key)
+    local count, err = red:get(cache_key)
     ngx.say(count)
 end
 
