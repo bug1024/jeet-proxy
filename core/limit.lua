@@ -32,18 +32,10 @@ function M:incr(api)
         return
     end
 
-    red:init_pipeline()
-
-    local ret, err = red:incr(cache_key)
-    -- todo
-    if count ~= ngx.null and tonumber(count) == 0 then
+    local count, err = red:incr(cache_key)
+    if count ~= ngx.null and tonumber(count) == 1 then
         ngx.say("first request")
         red:expire(cache_key, 10)
-    end
-
-    local ret, err = red:commit_pipeline()
-    if not ret then
-        ngx.say("failed to commit the pipelined requests: ", err)
     end
 
     ngx.say("requests: ", count)
