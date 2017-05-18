@@ -16,39 +16,38 @@ function M:incr(api)
     local config = require "core.config"
     local redis = require "resty.redis"
     local red = redis:new()
+
     red:set_timeout(config.redis_timeout)
     local ok, err = red:connect(config.redis_host, config.redis_port)
     if not ok then
         ngx.log(ngx.ERR, "failed to connect: ", err)
         return
     end
-    local cache_key = self:get_cache_key(api)
-    local exists, err = red:exists(cache_key)
 
-    red:init_pipeline((not exists or exists == 0) and 2 or 1)
-    local count, err = red:incr(cache_key)
-
-    if not exists or exists == 0 then
-        red:expire(cache_key, 10)
-    end
-    local _, err = red:commit_pipeline()
-
-    return true
-end
-
-function M:get(api)
-    local config = require "core.config"
-    local redis = require "resty.redis"
-    local red = redis:new()
-    red:set_timeout(config.redis_timeout)
-    local ok, err = red:connect(config.redis_host, config.redis_port)
-    if not ok then
-        ngx.log(ngx.ERR, "failed to connect: ", err)
-        return
-    end
     local cache_key = self:get_cache_key(api)
     local count, err = red:get(cache_key)
-    ngx.say(count)
+
+    if count ~= ngx.null and tonumber(count) > 5 then
+        ngx.say("too many requests: ", count)
+        return
+    end
+
+    red:init_pipeline()
+
+    local ret, err = red:incr(cache_key)
+    -- todo
+    if count ~= ngx.null and tonumber(count) == 0 then
+        ngx.say("first request")
+        red:expire(cache_key, 10)
+    end
+
+    local ret, err = red:commit_pipeline()
+    if not ret then
+        ngx.say("failed to commit the pipelined requests: ", err)
+    end
+
+    ngx.say("requests: ", count)
+    return true
 end
 
 return M
